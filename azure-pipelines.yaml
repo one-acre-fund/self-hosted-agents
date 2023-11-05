@@ -1,0 +1,31 @@
+trigger:
+  none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: TerraformCLI@1
+  displayName: 'Install Terraform CLI'
+  inputs:
+    command: 'validate'
+    allowTelemetryCollection: false
+
+- task: DownloadSecureFile@1
+  name: privateKey
+  displayName: 'Download secure file'
+  inputs:
+    secureFile: 'hcloud_terraform_id_rsa'
+
+- bash: |
+   terraform init
+
+   export TF_VAR_hcloud_api_token="$(HETZNER_CLOUD_TOKEN)"
+   export TF_VAR_ssh_private_key_path="$(privateKey.secureFilePath)"
+   export TF_VAR_azure_devops_pat="$(AZURE_PAT)"
+   export TF_VAR_ephemeral_password="$(EPHEMERAL_PASSWORD)"
+
+   terraform plan
+
+   terraform apply -auto-approve
+  displayName: 'Deploy Server'
