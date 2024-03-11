@@ -1,11 +1,11 @@
-name: Terraform Deployment
+name: Build
 
 on:
-  # workflow_dispatch:  # Manually triggered workflow
   pull_request:
     branches:
       - develop
       - master
+
   push:
     branches:
       - develop
@@ -26,11 +26,23 @@ jobs:
           terraform_version: 1.x  # Specify the Terraform version if needed
           cli_config_credentials_token: ${{ secrets.HETZNER_CLOUD_TOKEN }}
 
-      - name: Download secure file
-        id: privateKey
-        uses: actions/download-artifact@v2
+      - name: List Workspace Contents
+        run: ls -R ${{ github.workspace }}
+
+      - name: Create .ssh Directory
+        run: mkdir -p ${{ github.workspace }}/.ssh
+
+      - name: Upload secure file
+        uses: actions/upload-artifact@v2
         with:
           name: hcloud_terraform_id_rsa
+          path: ${{ github.workspace }}/.ssh
+
+      # - name: Download secure file
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: hcloud_terraform_id_rsa
+      #     path: ${{ github.workspace }}/.ssh
 
       - name: Deploy Server
         run: |
